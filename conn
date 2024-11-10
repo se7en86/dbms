@@ -1,0 +1,123 @@
+package dbconn;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.Scanner;
+
+public class Connect {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            Connection con = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:FREE", "SYS as SYSDBA", "iphone@786");
+            Statement st = con.createStatement();
+            boolean continueMenu = true;
+
+            while (continueMenu) {
+                System.out.println("Select an option:");
+                System.out.println("1. Create Table");
+                System.out.println("2. Update Table");
+                System.out.println("3. Display Table");
+                System.out.println("4. Delete Table");
+                System.out.println("5. Exit");
+
+                int choice = scanner.nextInt();
+                scanner.nextLine();
+
+                switch (choice) {
+                    case 1:
+                        try {
+                            System.out.println("Enter the name of the table to create:");
+                            String tableName = scanner.nextLine();
+                            String createTableSQL = "CREATE TABLE " + tableName + "(name VARCHAR(25), roll INT, marks INT)";
+                            st.executeUpdate(createTableSQL);
+                            System.out.println("Table " + tableName + " created successfully.");
+                            System.out.println("How many entries do you want to insert?");
+                            int numEntries = scanner.nextInt();
+                            scanner.nextLine();
+                            for (int i = 0; i < numEntries; i++) {
+                                System.out.println("Enter name for entry " + (i + 1) + ":");
+                                String name = scanner.nextLine();
+                                System.out.println("Enter roll number for entry " + (i + 1) + ":");
+                                int roll = scanner.nextInt();
+                                System.out.println("Enter marks for entry " + (i + 1) + ":");
+                                int marks = scanner.nextInt();
+                                scanner.nextLine();
+                                String insertSQL = "INSERT INTO " + tableName + " (name, roll, marks) VALUES ('" + name + "', " + roll + ", " + marks + ")";
+                                st.executeUpdate(insertSQL);
+                                System.out.println("Entry " + (i + 1) + " inserted successfully.");
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Error: " + e.getMessage());
+                        }
+                        break;
+
+                    case 2:
+                        try {
+                            System.out.println("Enter the name of the table to update:");
+                            String tableNameToUpdate = scanner.nextLine();
+                            System.out.println("Enter roll number to update:");
+                            int roll = scanner.nextInt();
+                            scanner.nextLine();
+                            System.out.println("Enter new name:");
+                            String name = scanner.nextLine();
+                            System.out.println("Enter new marks:");
+                            int marks = scanner.nextInt();
+                            scanner.nextLine();
+
+                            int rowsUpdated = st.executeUpdate("UPDATE " + tableNameToUpdate + " SET name = '" + name + "', marks = " + marks + " WHERE roll = " + roll);
+                            if (rowsUpdated > 0) {
+                                System.out.println("Record updated successfully.");
+                            } else {
+                                System.out.println("No matching record found.");
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Error: " + e.getMessage());
+                        }
+                        break;
+
+                    case 3:
+                        try {
+                            System.out.println("Enter the name of the table to display:");
+                            String displayTable = scanner.nextLine();
+                            ResultSet rs = st.executeQuery("SELECT * FROM " + displayTable);
+                            while (rs.next()) {
+                                System.out.println(rs.getString("name") + " " + rs.getInt("roll") + " " + rs.getInt("marks"));
+                            }
+                        } catch (Exception e) {
+                            System.out.println("Error: " + e.getMessage());
+                        }
+                        break;
+
+                    case 4:
+                        try {
+                            System.out.println("Enter the name of the table to delete:");
+                            String deleteTable = scanner.nextLine();
+                            st.executeUpdate("DROP TABLE " + deleteTable + " PURGE");
+                            System.out.println("Table " + deleteTable + " deleted successfully.");
+                        } catch (Exception e) {
+                            System.out.println("Error: " + e.getMessage());
+                        }
+                        break;
+
+                    case 5:
+                        continueMenu = false;
+                        System.out.println("Exiting program.");
+                        break;
+
+                    default:
+                        System.out.println("Invalid choice!");
+                        break;
+                }
+            }
+
+            st.close();
+            con.close();
+            scanner.close();
+        } catch (Exception ex) {
+            System.out.println("Error: " + ex);
+        }
+    }
+}
